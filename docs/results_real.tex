@@ -1,0 +1,67 @@
+\begin{table}[!ht]
+	\centering
+	\caption{Comparison of \textsc{Limsbs}-ensemble and \textsc{Imsbs} on benchmark set \textsc{Real}.}
+	\label{tab:real_results}
+	
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\textbf{RAT instances}
+		\scalebox{0.7}{
+		\begin{tabular}{l|lr|lr|r}
+			\hline
+			$m$ & \textsc{Limsbs}-ensemble & ${t}[s]$ & \textsc{Imsbs} & ${t}[s]$ & LCS$^*$ \\
+			\hline \hline
+			10 & \textbf{26} & 69.58 & {25}          & 30.65 & 209 \\
+			15 & \textbf{12} & 40.81 & {11} & 24.26 & 189    \\  
+			20 & \textbf{13} & 16.90 & 9           & 49.36 & 174 \\
+			
+			25 & \textbf{7}  & 24.30 & \textbf{7}          & 29.62 & 173   \\
+			40 & \textbf{5}  & 19.25 & 4           & 48.64 & 154  \\
+			
+			60 & \textbf{3}  & 25.81 & 1           & 45.22 & 154   \\
+			
+			80 & \textbf{1}  & 27.10 & \textbf{1}  & 53.02 & 144   \\
+			
+			100 & \textbf{1}  & 55.98 & \textbf{1}  & 44.30 & 139  \\
+
+			150 & \textbf{1}  & 56.73 & \textbf{1}  & 66.57 & 131  \\
+
+			200 & \textbf{1}  & 38.84 & \textbf{1}  & 62.54 & 126 \\
+  
+			\hline
+		\end{tabular}}
+	\end{minipage}
+	\hfill \hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\textbf{VIRUS instances}
+		
+		\scalebox{0.7}{
+		  \begin{tabular}{l|lr|lr|r}
+			\hline
+			$m$ & \textsc{Limsbs}-ensemble & ${t}[s]$ & \textsc{Imsbs} & ${t}[s]$& LCS$^*$ \\
+			\hline \hline		
+			10 & \textbf{84} & 163.59 & 36         & 43.14 &  228 \\
+		
+			15 & {18} & 25.21 & \textbf{19} & 36.52 &  206 \\
+			
+			20 & \textbf{12} & 24.13 & {10}          & 26.92 &  194 \\
+			
+			25 & \textbf{12} & 25.17 & 9           & 30.40 &  196 \\
+			
+			40 & \textbf{7}  & 23.41 & 5           & 32.12 &  174 \\
+			
+			60 & \textbf{5}  & 25.95 & 4           & 34.38 &  168 \\
+			
+			80 & \textbf{4}  & 34.47 & 3           & 40.64 &  163 \\
+			
+			100 & \textbf{3}  & 55.68 & \textbf{3}  & 43.25 & 160 \\
+			
+			150 & \textbf{4}  & 42.87 &  {3}           & 31.80 & 157 \\
+			
+			200 & \textbf{1}  & 38.64 & \textbf{1}  & 48.59 & 156  \\	\hline
+		\end{tabular}}
+	\end{minipage}
+	%\textcolor{red}{TODO: add longest known LCS solution as reference point...}
+	\vspace{-0.5cm}
+\end{table}
