@@ -100,10 +100,29 @@ The authors gratefully acknowledge the SLING consortium for funding this researc
 * Designed for reproducibility and HPC execution (e.g., SLURM systems)
 * Modular structure allows extension to other sequence-based optimization problems
 * Supports integration of neuro-evolutionary and classical heuristic frameworks
+* The paper will be published in Proceedings of OPTIMA 2026 (to appear, expected month of issue is December 2026); link to the presentation prepared for the OPTIMA 2026: https://github.com/markodjukanovic90/VGLCS_Neural_Heuristics/blob/d531480314c5bb716fde470c7d5467de52d5fbc0/docs/presentation/optima-2026-djukanovic-extended.pdf
 
 ```
 ```
 
+---
+
+# 7. CITE
+
+* This work can be cited as:
+
+```
+
+@inproceedings{djukanovic2026neuro,
+  title     = {Neuro-Evolved Heuristics for Variable Gapped Common Subsequence Identification},
+  author    = {Djukanovi{\'c}, Marko and Blum, Christian and Kartelj, Aleksandar and D{\v z}eroski, Sa{\v s}o and Zebec, {\v Z}iga},
+  booktitle = {Proceedings of the XVII International Conference on Optimization and Applications (OPTIMA 2026)},
+  year      = {2026},
+  publisher = {Springer},
+  note      = {To appear}
+}
+
+```
 
 
 
