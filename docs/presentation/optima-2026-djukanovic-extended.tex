@@ -1,0 +1,932 @@
+\documentclass{beamer}
+\usetheme{CambridgeUS}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\usepackage{cancel}
+\usetikzlibrary{positioning}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{comment}
+\usetikzlibrary{shapes.geometric}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\newcommand{\safeincludegraphics}[2][]{%
+  \IfFileExists{#2}{\includegraphics[#1]{#2}}{\mbox{}}%
+}
+
+
+
+\tikzset{
+box/.style={
+draw,
+rectangle,
+rounded corners,
+align=left,
+font=\small,
+inner sep=4pt,
+fill=green!15
+}
+}
+
+\setbeamertemplate{footline}
+{
+	\leavevmode%
+	\hbox{%
+		
+		% Left: author
+		\begin{beamercolorbox}[wd=.2\paperwidth,ht=4ex,dp=1ex,left]{author in head/foot}%
+			\hspace{1em}\insertshortauthor
+		\end{beamercolorbox}%
+		
+		% Middle: title
+		\begin{beamercolorbox}[wd=.3\paperwidth,ht=4ex,dp=1ex,center]{title in head/foot}%
+			\insertshorttitle
+		\end{beamercolorbox}%
+		
+		% Right: logos + slide number
+		\begin{beamercolorbox}[wd=.5\paperwidth,ht=4ex,dp=1ex,right]{date in head/foot}%
+			\safeincludegraphics[height=3.5ex]{IFEEL_1.png}\hspace{0.1em}
+			\safeincludegraphics[height=3.5ex]{cofunded_eu.png}\hspace{0.1em}
+			\safeincludegraphics[height=3.5ex]{slo_ministry.png}\hspace{0.1em}
+			\safeincludegraphics[height=3.8ex]{SMASH_CMYK-ENG-horizontal_on_white.pdf}
+			\hspace{3.5em}
+			\insertframenumber{} / \inserttotalframenumber
+			\hspace{1em}
+		\end{beamercolorbox}%
+	}
+}
+
+
+
+\title[Neuro-Evolved Heuristics for VGLCS...]{Neuro-Evolved Heuristics for Variable Gapped Common Subsequence Identification}
+
+\author[Djukanovic et al.  ]{Marko Djukanović\inst{1, 5}  \and
+Christian Blum\inst{2}  \and 
+Aleksandar Kartelj\inst{3}  \and
+Sašo Džeroski\inst{4}  \and
+Žiga Zebec\inst{5}
+}
+ 
+\institute{ $^1$University of Nova Gorica, Nova Gorica, Slovenia \\ 
+$^2$Artificial Intelligence Research Institute (IIIA-CSIC), Barcelona, Spain \\ 
+$^3$Faculty of Mathematics, University of Belgrade, Belgrade, Serbia \\
+$^4$Jožef Stefan Institute, Ljubljana, Slovenia \ \\
+$^5$Institute of Information Sciences (IZUM), Maribor, Slovenia \\ \vspace{0.3cm}
+
+\footnotesize{-- \textcolor{blue}{OPTIMA 2026: XVII International Conference Optimization and Applications, Petrovac, Montenegro -- }\\
+	-- September 2026 --} \\  \vspace{0.5cm}
+\centering
+
+\safeincludegraphics[width=80pt,height=40pt]{IFEEL_1.png}~\hfill
+\safeincludegraphics[width=90pt,height=35pt]{cofunded_eu.png} ~\hfill
+\safeincludegraphics[width=70pt,height=35pt]{slo_ministry.png}  ~ \hfill
+\safeincludegraphics[width=80pt, height=30pt]{SMASH_CMYK-ENG-horizontal_on_white.pdf}
+}%slo_ministry.png
+
+\date{}
+
+% Make 
+
+
+\begin{document}
+ 
+	
+\begin{frame}[plain]
+    \maketitle
+\end{frame}
+
+
+\begin{frame}{Introduction}
+   \begin{itemize}
+       \item Objects we deal with: sequences (strings) over finite alphabet  $\Sigma$
+       \begin{itemize}
+       \item DNA/RNA sequences over $\{\texttt{A}, \texttt{T}, \texttt{G}, \texttt{C/U}\}$
+       \item Proteins over 20 (canonical) amino acids: $\{\texttt{A}, \texttt{C}, \texttt{D}, \texttt{E}, \texttt{P}, \texttt{Q} ...\}$ 
+       \end{itemize} \vspace{0.3cm}
+        \item \textbf{One of central tasks in computational biology:} 
+        \begin{itemize}
+        	\item  sequence comparison, find \textbf{common motifs} between sequences
+          \item structural similarity vs. sequence functionality 
+       \end{itemize} \vspace{0.4cm}
+       
+       \item Motifs = common \textbf{subsequences} $\rightarrow$ \textcolor{blue}{\textbf{Longest commmon subsequence problem}} variants (studied 50 years already)
+   \end{itemize}
+\end{frame}
+
+\begin{frame}{Longest common subsequence problem (LCSP)}
+   
+    
+    \begin{definition}[LCSP]
+        \textbf{Input}: Given an arbitrary set of sequences $S=\{s_1, \ldots, s_m\}$ \\
+        \textbf{Task}: Find a longest possible  subsequence $s$  \textcolor{blue}{common} for all sequences from $S$. %with \textcolor{blue}{maximum} possible length ($|s|$). 
+    \end{definition} \vspace{0.5cm}
+   % \begin{example}
+    %   Input: $S=$\{\texttt{\textcolor{red}{A}A\textcolor{red}{T}\textcolor{red}{T}G\textcolor{red}{C}}, \texttt{\textcolor{red}{A}\textcolor{red}{T}\textcolor{red}{T}A\textcolor{red}{C}}\} \\ 
+    %   LCS solution: $s=\text{\textcolor{red}{ATTC}}$
+    %\end{example}
+    %   \vspace{0.3cm}
+  
+ \textbf{LCS: Literature \& Problem Variants }
+  \begin{itemize}
+  \item For $m=2$: polynomially solvable, e.g. {Dynamic programming} %Hunt-Szymanski, Hirschenberg,  ... 
+ \vspace{0.2cm}
+  \item When $m$ arbitrary large:   \textcolor{red}{$\mathcal{NP}$-hard}, e.g.,  approximation, meta-heuristic, exact approaches   
+  \end{itemize}\vspace{0.5cm}
+  
+  \textbf{Problem-related practical variants}:    Repetition-free, Filled LCS problem, \textcolor{red}{Gapped LCS problem}
+\end{frame}
+
+\begin{frame}{The gapped LCS problem (Peng and Yang, 2012)}
+   \begin{definition}[Gapped sequence]
+       Given is a sequence $s$ and a function 
+       $G_s \colon \{1, \ldots, |s|\} \mapsto \mathbb{N}$. A pair \textcolor{red}{$(s, G_s)$} is called a {gapped sequence}.
+   \end{definition} ($G_s$: one number assigned  to each position of $s$) \vspace{0.5cm}
+   
+   \begin{definition}[Gapped subsequence]
+         Sequence $\tilde{s}$ is a \textcolor{red}{gapped subsequence} of $(s, G_s)$ iff 
+         \begin{itemize}
+             \item $\tilde{s}$ is a \textbf{subsequence} of $s$
+             \item the gap constraint $G_s$ fulfilled resp. the \textit{positions of embedding} $\tilde{s}$ in $s$:
+         \begin{itemize}
+         	\item \textcolor{red}{upper bounds assigned on the number of letters} between  consecutive pairs of (embedding) positions
+             %\item  suppose $i_1< \ldots <i_{|\tilde{s}|}$ are those \textbf{positions}  
+             %\item ($\forall$ $j=2, \ldots, |\tilde{s}|)\, \textcolor{red}{i_{j} - i_{j-1} \leq G_{s}(i_{j})+1}$  (consecutive positions respect gap distances = allowed \textit{number of letters inbetween})
+         \end{itemize}
+       \end{itemize}
+   \end{definition}
+   
+\end{frame}
+
+\begin{frame}{Problem definition}
+
+   \begin{example}
+      $s=\texttt{AATTGC}$, $\textcolor{red}{G_s(\cdot)=1}$, $\tilde{s}=\texttt{ATG}$
+      \begin{itemize}
+         \item the embedding \textcolor{red}{A}A\textcolor{red}{T}T\textcolor{red}{G}C (\textcolor{blue}{valid} gapped subsequence)
+         \item  the embedding \textcolor{red}{A}A{T}\textcolor{red}{T}\textcolor{red}{G}C (\textcolor{blue}{invalid}, two letter inbetween $> G_s[4]=1$)
+      \end{itemize}
+   \end{example} \vspace{0.5cm}
+    
+   \begin{definition}[The multiple gapped LCS problem]
+        \textbf{Input}: Given is an arbitrary set of  gapped sequences $\{ (s_i, G_{s_i})\}_{i=1}^m \}$. \\
+        \textbf{Task}: Find the longest  sequence $\tilde{s}$ so that 
+        \begin{itemize}
+            \item  $\tilde{s}$ is \textcolor{red}{\textbf{common subusequence}} of each $s_i$
+            \item $\tilde{s}$ \textcolor{red}{\textbf{fulfills all gap constraints}} $G_{s_i}$ ($i=1, \ldots, m$)
+        \end{itemize}
+    \end{definition}
+   % \textbf{Note}: When $G_{s_i}=n$ (length of longest sequence) $\Rightarrow$ VGLCSP = LCSP.
+\end{frame}
+
+\begin{frame}{Literature \& Motivation for VGLCSP}
+   
+   \begin{itemize}
+       \item  Peng and Yang (2012, 2014):  $m=2$  version by \textcolor{red}{three dynamic programming} (DP) approaches 
+       \item  Manea et al. (2024): complexity analysis investigated
+       \begin{itemize}
+       	\item   {\textcolor{red}$\mathcal{NP}$-hard }  ($m$ arbitrary) 
+        \end{itemize} 
+        \item Djukanovic et al. (2026) the first approach for $m$ arbitrary: \textcolor{red}{Iterative Beam search approach}
+   \end{itemize} \vspace{0.5cm}
+   
+   \textbf{Motivation}:
+   \begin{itemize}
+       \item  \textcolor{blue}{Genetics and molecular biology}%: %DNA/protein comparison analysis--distances between residues must be respected \vspace{0.2cm}
+       \item \textcolor{blue}{Time-series analysis}: in settings where events are required to occur within specified temporal delays~(Lainscsek et al. (2015))
+   \end{itemize}
+   
+\end{frame}
+
+\begin{frame}{Methodology by Djukanovic et al. (2026) }
+	
+%	STARTING FROM HERE NEEDS TO BE ADAPTED...
+	
+    \begin{itemize}
+        \item Based on the \textbf{state space graph formulation} of the problem \vspace{0.3cm}
+        \item \textbf{Nodes} corresp. to partial solutions and resp. subproblems to solve
+        \begin{itemize}
+        	\item transitions: valid extensions of partial solutions (by one letter)
+        \end{itemize} \vspace{0.3cm}
+        \item \textbf{Gap constraints}: cut-off invalid extensions (edges) among the LCS extensions \vspace{0.3cm}
+        \item \textcolor{red}{\textbf{Many root/source nodes}} in the state space%---the position of leading letter in each common gapped subsequence free to select 
+        \begin{itemize}
+        	\item   root state space subgraph (formulation) w.r.t. starting source (match)
+        \end{itemize} 
+    \end{itemize}
+    
+\end{frame}
+
+
+\begin{comment}
+\begin{frame}{Root-based state graph formulation: rough idea}
+  
+  
+  \begin{itemize}
+      
+      %\item Start with $p^L=1$, and empty partial solution, refers to the complete problem
+      
+      \item Each \textbf{state} $v=(p^L, l^v)$: one or more feasible partial solutions where
+      \begin{itemize}
+      	  \item  a vector of positions $p^L$ refer to the positions of suffixes of input sequences relevant to  further expand these sols (subproblem)
+      	  \item the  length of current partial solution $l^v$ 
+      \end{itemize}\vspace{0.3cm}
+      \item \textbf{Expansion} of $v$: extend (concatenate)  partial solutions feasibly (and non-dominantly) by one letter  in all possible ways,  respecting gap constraints \vspace{0.3cm}
+      \item \textbf{Non-expandable nodes}: complete solutions; 
+  \end{itemize} \vspace{0.15cm}
+  
+  \fbox{\textcolor{red}{\textbf{Decision: select appropriate (matches)\ $p^L$ for start (empty solution)}}} $\Rightarrow$ possibly \textbf{(exponentially) many root nodes}  \\ \vspace{0.2cm} {Space($p^L$)}: root-based state (sub) graph  induced by root node $(p^L, 0)$.
+\end{frame}
+
+\end{comment}
+
+
+\begin{comment}
+\begin{frame}{Root-based state graph formulation: example}
+   
+    Given $s_1=$\texttt{\fbox{A}BCA},  $s_2=$\texttt{\fbox{A}CAB}, assuming  $G_1=G_2=1$, match $p^L=(1, 1)$; \\ \vspace{0.3cm} \textsc{SubSpace}($(1, 1)$): \textcolor{red}{\textbf{partial solutions start with \texttt{A} at} $(1, 1)$}, transitions: append part. sol. (feasibly) by one letter
+   	
+   % U nekom delu LaTeX dokumenta:
+   \begin{figure}[h!]
+   \centering
+   \scalebox{0.47}{
+   
+   
+   \begin{tikzpicture}[
+   state/.style={circle, draw=blue!50, fill=blue!10, thick, minimum size=8mm},
+   edge/.style={-Latex, thick},
+   node distance=2cm and 2cm
+   ]
+   
+   % Čvorovi
+   \node[state, fill=blue] (s0) {((1, 1),0)};
+   \node[state, below left=of s0] (s1) {((2, 2),1)};
+   \node[state, below right=of s0] (s2) {((4,3),2)};
+   %\node[state, below=of s2] (s3) {(4,3)};
+   \node[state, below=of s2, fill=gray] (s4) {((5,4),3)}; % krajnje, ali ne koristi se ovde
+   \node[state, left=of s4, fill=white] (s5) {((3, 5), 2)}; % krajnje, ali ne koristi se ovde
+   
+   % Right of root ((1,1),0)
+   \node[box, right=12mm of s0] (b0) {
+   $s_1=\text{\underline{A}BCA}$\\
+   $s_2=\text{\underline{A}CAB}$\\
+   $s^v=\varepsilon$
+   };
+   
+   % Left of ((2,2),1)
+   \node[box, left=14mm of s1] (b1) {
+   $s_1=\text{\textcolor{gray}{A}\underline{B}CA}$\\
+   $s_2=\text{\textcolor{gray}{A}\underline{C}AB}$\\
+   $s^v=\text{A}$
+   };
+   
+   % Right of ((4,3),2)
+   \node[box, right=12mm of s2] (b2) {
+   $s_1=\text{\textcolor{gray}{ABC}\underline{A}}$\\
+   $s_2=\text{\textcolor{gray}{AC}\underline{A}B}$\\
+   $s^v=\text{AC}$
+   };
+   
+   % Right of ((5,4),3)
+   \node[box, right=42mm of s5] (b3) {
+   $s_1=\text{\textcolor{gray}{ABCA}}$\\
+   $s_2=\text{\textcolor{gray}{ACAB}}$\\
+   $s^v=\text{ACA}$
+   };
+   
+ 
+   
+   % Grane (samo validne poklapanja)
+   \draw[edge] (s0) -- node[above] {\small A} (s1);
+   %\draw[edge] (s0) -- node[above] {\small A} (s2);
+   \draw[edge] (s1) -- node[above] {\small C} (s2);
+   %\draw[edge] (s2) -- node[right] {\small A} (s3);
+   %\draw[edge] (s3) -- node[right] {\texttt{A}} (s4);
+   \draw[edge,  scale=2.2, dashed, red] (s1) -- node[right, fill=lightgray] {$\cancel{\texttt{B}}$} (s5);
+   
+    \draw[edge,  scale=2.2, dashed, red] (s1) -- node[right, fill=lightgray] {$\cancel{\texttt{A}}$} (s4);
+   % Oznake
+   \node[above=0.3cm of s0] {\textbf{Root state}};
+   %\node[below=1.5cm of s3] {\small \textbf{Krajnje stanje}};
+   \draw[edge] (s2) -- node[right] {\texttt{A}} (s4);
+   
+   \end{tikzpicture}}
+   
+   %\caption{State space graph Space($r=((1, 1), 0)$) for MVGLCSP between the sequences \texttt{\fbox{A}BCA} and  \texttt{\fbox{A}CAB}, assuming $\textcolor{red}{G_1=G_2=1}$.   % \fxnote{Add VGLCS example}
+   %}
+   
+   \label{fig:vgcs-grafstanja}
+   \end{figure}
+   $\textcolor{red}{\textsc{SubSpace}((1, 1)) \Longrightarrow \texttt{ACA}}$
+   \end{frame}
+\end{comment}
+
+
+\begin{frame}{Methodology: main components roughly}%{An issue with the root-state-space formulation: disconnected components}
+	
+	\begin{itemize}
+		\item  Generation of high-quality  solutions for a root (sub-)space generally hard $\Rightarrow$  an approx. approach for evaluation (\textcolor{red}{\textbf{Beam search} -- \textbf{limited BFS}}) \vspace{0.5cm}
+		\item  The root-state-space formulation may involve disconnected components  $\Rightarrow$ needs \textbf{iterative beam search} to explore all search space 
+	\end{itemize} \vspace{0.7cm}
+	
+	$\Longrightarrow$ \textcolor{red}{\textbf{ Iterative Multi Source Beam Search (IMSBS) approach}}. 
+\end{frame}
+	
+\begin{comment}
+	\begin{example}
+		$
+		S = \{ s_1 = \texttt{ATGG\fbox{A}AA},\; s_2 = \texttt{ATCC\fbox{A}AA} \},
+		$
+		with $G_{s_1} = G_{s_2} = 1$. 
+	\end{example}
+	
+	\centering
+	\scalebox{0.33}{
+		\begin{tikzpicture}[
+			state/.style={circle, draw=blue!50, fill=blue!10, thick, minimum size=8mm},
+			edge/.style={-Latex, thick},
+			invalid/.style={-Latex, thick, dashed, red},
+			node distance=1.8cm
+			]
+			
+			% ---------------- LEFT COMPONENT ----------------
+			\node[state, fill=blue] (r1) at (0,0) {((1,1),0)};
+			\node[state, below=of r1] (a1) {((2,2),1)};
+			\node[state, below=of a1, fill=gray] (a2) {((3,3),2)};
+			
+			\draw[edge] (r1) -- node[right] {\small A} (a1);
+			\draw[edge] (a1) -- node[right] {\small T} (a2);
+			
+			\node[above=0.3cm of r1] {\textbf{$Space((1,1))$}};
+			\node[below=0.3cm of a2, align=center] {\small Stops before reaching \\ $(5,5)$};
+			
+			% ---------------- RIGHT COMPONENT ----------------
+			\node[state, fill=green!40!black!30, right=5cm of r1] (r2) {((5,5),0)};
+			\node[state, below=of r2] (b1) {((6,6),1)};
+			\node[state, below=of b1] (b2) {((7,7),2)};
+			\node[state, below=of b2, fill=gray] (b3) {((8,8),2)};		
+			\draw[edge] (r2) -- node[right] {\small A} (b1);
+			\draw[edge] (b1) -- node[right] {\small A} (b2);
+			\draw[edge] (b2) -- node[right] {\small A} (b3);
+						
+			\node[above=0.3cm of r2] {\textbf{$Space((5,5))$}};
+			\node[below=0.3cm of b3] {\small \textcolor{blue}{Optimal subsequence: \texttt{AAA}}};
+			
+			% ---------------- DISCONNECTION INDICATOR ----------------
+			\draw[invalid] (a2.east) .. controls +(1.5,0) and +(-1.5,0) .. 
+			node[above] {\small \textbf{No valid transition}} (r2.west);
+			
+		\end{tikzpicture}
+	}
+	
+	
+	\footnotesize{\textbf{Observation:}$
+	((5,5),\ast) \notin \textsc{SubSpace}((1,1))	$, \textcolor{red}{The optimal solution: \texttt{AAA}.}}	
+	%\vspace{0.1cm}
+	%\textcolor{blue}{\textbf{Fix:}} Use a multi-root formulation (e.g., multi-source beam search).
+  \end{comment}
+
+
+\begin{comment}
+\begin{frame}{Iterative multi-source beam search (IMSBS) strategy}
+      
+      \begin{itemize}
+      	%	\item \textbf{Full state space} of a VGLCSP instance: $\bigcup_{v \in \mathcal{R}} \mathrm{Space}(\mathbf{p}^{L, v})$, with $v=(\mathbf{p}^{L, v}, 0) \in \mathcal{R}$ all root states  
+      		\item Explicitly enumerating root states computationally prohibitive ($O(n^m)$ time) \vspace{0.7cm}
+      		\item \textcolor{red}{\textbf{IMSBS}} (rough idea of exploring space of root nodes):  \vspace{0.2cm}
+      		\begin{enumerate}
+      		    \item  \textbf{Exploitation} of  \text{Space}($p^L$): given to \textcolor{blue}{beam search} (BS) --- limited breadth-first-search (BFS) strategy;  {parameter $\beta$} controls the number of nodes at each level to further pursue \vspace{0.5cm}
+      		    
+      		    \item \textbf{Exploration} of promising regions (\text{Space}($p^L$)) of the state space  
+      		    \begin{itemize}
+      		       \item  \textbf{Iteratively identify} a set of \textcolor{red}{promising} candidate root states during BS
+      		       \item allow some (non-) root nodes: effective \textit{refinement} (find \textcolor{red}{distant root ancestors} to reach that node)
+      		    \end{itemize}
+      		\end{enumerate}
+      \end{itemize}  
+\end{frame}
+
+\end{comment}
+
+
+\begin{comment}
+\begin{frame}{Components and characteristics of IMSBS}
+     TODO: Consider not to display this slide!
+     
+   \begin{itemize}
+     	\item $\mathcal{R}$: a \textbf{global set} of root-node candidates, dynamically updated over iterations
+     	\item \textbf{Beam search} (\textbf{backward}): not all candidate nodes from $\mathcal{R}$ are root nodes
+     	\begin{itemize}
+     		\item \textcolor{blue}{\textbf{refine}} them by performing the  {backward} approximate (BS) passes from candidate root nodes to effectively reach distant (real) \textcolor{red}{root node} in the state space
+     	\end{itemize}
+     	\item  {\textbf{Beam search}} (\textbf{forward}): \textcolor{red}{intensification} in the current root (sub-)space {Space($p$)} -- seek for high-quality (complete) solutions in the corresponding search sub-regions
+     	\item \textcolor{red}{diversification}:  during each BS (forward), complete nodes expanded in all possible ways (\textbf{gaps ignored}) to generate candidates for roots (distant from the current region)
+     \end{itemize}
+
+\end{frame}
+\end{comment}
+
+\begin{comment}
+\begin{frame}{Workflow of the Iterative Multi-source Beam Search -- IMSBS}
+ 
+	 %\begin{figure}[!ht]
+	 \centering
+	 \scalebox{0.42}{
+	 	\begin{tikzpicture}[
+	 		node distance=0.7cm and 1.2cm,
+	 		every node/.style={font=\small},
+	 		block/.style={
+	 			rectangle,
+	 			draw,
+	 			rounded corners,
+	 			align=center,
+	 			minimum width=2.0cm,
+	 			minimum height=0.6cm,
+	 			fill=green!10
+	 		},
+	 		decision/.style={
+	 			diamond,
+	 			draw,
+	 			align=center,
+	 			aspect=2,
+	 			fill=green!5
+	 		},
+	 		arrow/.style={
+	 			->,
+	 			thick,
+	 			>=Latex,
+	 			shorten >=2pt,
+	 			shorten <=2pt
+	 		}
+	 		]
+	 		
+	 		% Nodes
+	 		\node[block] (start) {Start};
+	 		
+	 		\node[block, below=of start] (init) {Initialize \textbf{global queue of roots} $\mathcal{R}=\{\}$\\
+	 			$s_{\text{best}} \leftarrow \varepsilon$};
+	 		
+	 		\node[block, below=of init] (expandR) {Initial generation of sources -- \textbf{closest matches} for each $a \in \Sigma$ };
+	 		
+	 		\node[decision, below=of expandR] (while) {A termination criterion not met};
+	 		
+	 		\node[block, below=of while] (selectL) {Select subset $\mathcal{L} \subseteq \mathcal{R}$\\
+	 			(priority by $h'$)};
+	 		
+	 		%\node[block, below=of selectL] (backward) {\textbf{Refinement} of $v \in \mathcal{L}$ \\ (Rooted BS on reversed prefixes w.r.t.\ $p^{L,v}$)};
+	 		
+	 		\node[block, below=of selectL] (forward) {BS to evaluate $\mathcal{L}$ 
+	 			(Rooted Beam Search)};
+	 		
+	 		\node[block, below=of forward] (updateBest) {Update best solution $s_{\text{best}}?$};
+	 		
+	 		\node[block, below=of updateBest] (expandNew) {\textbf{Generate promising  candidate roots} \\ from complete states in BS run \\ update $\mathcal{R}$};
+	 		
+	 		\node[block, below=of expandNew] (end) {Return $s_{\text{best}}$};
+	 		
+	 		% Arrows (main flow)
+	 		\draw[arrow] (start) -- (init);
+	 		\draw[arrow] (init) -- (expandR);
+	 		\draw[arrow] (expandR) -- (while);
+	 		
+	 		\draw[arrow] (while) -- node[right] {yes} (selectL);
+	 		%\draw[arrow] (selectL) -- (backward);
+	 		%\draw[arrow] (backward) -- (forward);
+	 		\draw[arrow] (forward) -- (updateBest);
+	 		\draw[arrow] (updateBest) -- (expandNew);
+	 		
+	 		% Explicit loop-back arrow (FIXED)
+	 		 \draw[arrow]
+	 		(expandNew.east) -- ++(2.7,0)
+	 		|- (while.east);
+	 		
+	 		% Exit arrow
+	 		\draw[arrow]
+	 		(while.west) -- ++(-1.8,0)
+	 		node[left] {no}
+	 		|- (end.west);
+	 		
+	 	\end{tikzpicture}
+	 }
+	 
+	 	%\caption{Simplified workflow of the Iterated Multi-source Beam Search (IMSBS) framework.}
+	 	%\label{fig:imsbs_workflow}
+	 %\end{figure}
+	 	 		
+	 %\node[block, below=of expandNew] (iter) {$iter \leftarrow iter + 1$};
+	 	 		%\draw[arrow] (expandNew) -- (iter);
+ 
+\end{frame}
+\end{comment}
+
+%\begin{frame}{The core advantages of the IMSBS}
+% 
+%     \begin{itemize}
+%     	\item Balance between complete beam search execution (local exploration of promising paths) and the generation of new, promising source nodes (\textcolor{red}{\textbf{global coverage}} of generally weakly-connected search space) \vspace{0.3cm}
+%     	\item Preventing from direct suboptimal solutions reduced by employing backward beam search procedure (\textcolor{red}{\textbf{refinement}})
+%     \end{itemize}
+%      
+%\end{frame}
+
+\begin{frame}{Heuristic guidances in IMSBS}
+    
+    The best literature heuristic to guide BS and prioritize root node: \vspace{0.2cm}
+        \begin{enumerate}
+    	  	\item   $\textrm{UB}_2$: \textcolor{red}{\textit{Character Frequency Alignment}} score
+    \end{enumerate} \\ \vspace{0.5cm}
+    
+\textbf{Conclusions about IMSBS:}
+    \begin{itemize}
+    	\item efficiently executed on large synthetic instances
+    	%\item Obtain a large portion  of known optimal solutions for $m=2$
+    	\item {Weaknesses}: the performance of $\textrm{UB}_2$ improvable for  large $n$ ($=500$) and small $|\Sigma|$ ($=2$) 
+    \end{itemize} \vspace{0.7cm}
+    $\Rightarrow$ \textcolor{red}{\textbf{Construction of a new heuristic guidance}}
+\end{frame}
+
+
+
+\begin{frame}{Designing advanced heuristic guidances: main idea}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.52\textwidth}
+\begin{itemize}
+ % \item IMSBS needs a better score to decide which candid nodes stay in the beam
+  %\item Hand-crafted upper bounds useful, but less reliable for hard settings
+  \item We learn \textcolor{blue}{a new node evaluator}: a function assigning a promise score to a partial solution
+\end{itemize}
+\vspace{0.15cm}
+%\begin{block}{Role of the learned heuristic}
+%It does \textbf{not} construct the solution directly; it ranks candidate states during search.
+%\end{block}
+\end{column}
+
+%\begin{column}{0.46\textwidth}
+%\centering
+%\scalebox{0.78}{
+%\begin{tikzpicture}[node distance=0.9cm,>=Latex]
+%\node[draw,rounded corners,fill=blue!8,align=center,minimum width=3.4cm] (v) {candidate node $v$\\partial solution};
+%\node[draw,rounded corners,fill=green!10,align=center,below=of v,minimum width=3.4cm] (f) {feature vector\\$x(v)$};
+%\node[draw,rounded corners,fill=orange!12,align=center,below=of f,minimum width=3.4cm] (n) {neural network\\$h_w(v)$};
+%\node[draw,rounded corners,fill=purple!10,align=center,below=of n,minimum width=3.4cm] (b) {beam priority\\keep top $\beta$};
+%\draw[->,thick] (v)--(f); \draw[->,thick] (f)--(n); %\draw[->,thick] (n)--(b);
+%\end{tikzpicture}}
+%\end{column}
+
+\end{columns}
+\end{frame}
+
+\begin{frame}{Neural network basics: MLP as a scoring function}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.50\textwidth}
+\begin{itemize}
+  \item We use a \textcolor{red}{\textbf{feed-forward multilayer perceptron}} (MLP).
+  \item Input: \textbf{compact numerical description} of the state $v$.
+  \item Hidden layers transform features into nonlinear combinations.
+  \item Output: a \textbf{single heuristic score} $h_w(v)$.
+\end{itemize}
+%\vspace{0.5cm}
+%\[
+%\mathbf a^{(l+1)}=\phi(W^{(l)}\mathbf a^{(l)}+b^{(l)}),
+%\qquad h_w(v)=a^{(L)}.
+%\]
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\scalebox{0.72}{
+\begin{tikzpicture}[x=1cm,y=0.7cm,>=Latex]
+\foreach \i in {1,...,5} {\node[circle,draw,fill=blue!10] (i\i) at (0,-\i) {};}
+\foreach \i in {1,...,4} {\node[circle,draw,fill=green!10] (h\i) at (2,-\i-0.5) {};}
+\foreach \i in {1,...,3} {\node[circle,draw,fill=green!18] (g\i) at (4,-\i-1) {};}
+\node[circle,draw,fill=orange!15] (o) at (6,-3) {$h$};
+\foreach \a in {1,...,5} \foreach \b in {1,...,4} {\draw[->,gray!50] (i\a)--(h\b);}
+\foreach \a in {1,...,4} \foreach \b in {1,...,3} {\draw[->,gray!50] (h\a)--(g\b);}
+\foreach \a in {1,...,3} {\draw[->,gray!60] (g\a)--(o);}
+\node[above] at (0,0) {\textcolor{blue}{features}}; \node[above] at (3,0) {\textcolor{blue}{hidden + activation funcs}}; \node[above] at (6,0) {\textcolor{blue}{score}};
+\end{tikzpicture}}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{State features for VGLCS node evaluation}
+\small
+For a state $\textbf{v}=(\mathbf p^v,l^v)$ ($p^v$: vector of suffix positions encoding subproblem to be solved, $l^v$: length of partial solution), build a \textbf{size-independent features}:
+\vspace{0.2cm}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.31\textwidth}
+\begin{block}{\textbf{Search progress}}
+\begin{itemize}
+\item normalize positions: $F_i^v=p_i^v/|s_i|$
+\item $\max,\min,\mathrm{mean},\mathrm{std}$ of $\mathbf F^v$
+\item current length $l^v$
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.35\textwidth}
+\begin{block}{\textbf{Gap flexibility}}
+\begin{itemize}
+\item $G^{v}_i:$ gap values for the respective positions of the subproblem %G_{s_i}[p^v_i, \ldots]$
+\item $\max,\min,\mathrm{mean},\mathrm{std}$ %of $\mathbf G^v$
+\item how restrictive future extensions are
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.30\textwidth}
+\begin{block}{\textbf{Global context}}
+\begin{itemize}
+\item alphabet size $|\Sigma|$
+\item number of sequences $m$
+\item standardized before training
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.5cm}
+%\centering
+%\textcolor{blue}{Feature sets tested:} $F_1$ = progress + gaps (9); $F_2=F_1+|\Sigma|$ (10); $F_3=F_2+m$ (11).
+\end{frame}
+
+\begin{frame}{How the learned evaluator is used inside IMSBS}
+%\begin{enumerate}
+%  \item Beam search expands the currently selected states.
+%  \item Each feasible extension produces a child node $u$.
+%  \item The child is transformed into features $x(u)$.
+%  \item The NN score $h_w(u)$ is computed (feed-forward propagation).
+%  \item Candidates are sorted and only the best $\beta$ nodes survive.
+%\end{enumerate}
+
+\vspace{0.25cm}
+\centering
+\scalebox{0.77}{
+\begin{tikzpicture}[node distance=1.0cm,>=Latex]
+\node[draw,rounded corners,fill=blue!8,align=center] (parent) {Beam level $k$: \\ $\beta$ candidate states};
+\node[draw,rounded corners,fill=green!8,align=center,right=of parent] (expand) {Feasible\\extensions};
+\node[draw,rounded corners,fill=orange!10,align=center,right=of expand] (score) {Extract feature vectors, \\ score each node\\$h_w(u)$};
+\node[draw,rounded corners,fill=purple!10,align=center,right=of score] (keep) {Next beam\\top $\beta$};
+\draw[->,thick] (parent)--(expand); \draw[->,thick] (expand)--(score); \draw[->,thick] (score)--(keep);
+\end{tikzpicture}}
+\vspace{0.25cm}
+\begin{block}{Important note}
+Learning is \textbf{offline}; during the final run the NN is only a fast scoring function.
+\end{block}
+\end{frame}
+
+\begin{frame}{Learning weight of NN evaluator: Why not standard supervised backpropagation?}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.50\textwidth}
+\begin{block}{Obstacle(s)}
+\begin{itemize}
+  %\item No direct target labels for ``good node'' on large VGLCSP instances
+  
+  \item Exact optimal trajectories unavailable for the general case
+  %\item Search quality non-differentiable: one ranking decision  affect many later states
+
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{block}{Solution: neuro-evolution}
+\begin{itemize}
+  \item Treat all NN weights as \textbf{one vector $w$}.
+  \item Evaluate $w$ by running (inexpensive) IMSBS on training (32) instances.
+  \item \textbf{Fitness} = average subsequence length found
+\end{itemize}
+\end{block}
+%\[
+%\max_w \frac{1}{|\mathcal T|}\sum_{I\in\mathcal T} f(\textsc{IMSBS}(I,h_w))
+%\]
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Learning weights with Biased Random Key GA}
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.50\textwidth}
+\begin{itemize}
+  \item Individual = \textcolor{red}{complete NN weight vector $w$}
+  \item Population of weights, evolution ... 
+  %\item Initial weights sampled from $[-1,1]$.
+  %\item Population refined by elitism, mutants and biased crossover.
+  %\item Validation set monitors generalization and prevents overfitting.
+\end{itemize}
+\vspace{0.15cm}
+\begin{block}{Parameters setting:}
+$n_{pop}=20$, $n_{elite}=1$, $n_{mutants}=7$, $p_{bias}=0.5$.
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\scalebox{0.55}{
+\begin{tikzpicture}[node distance=0.75cm,>=Latex]
+\node[draw,rounded corners,fill=purple!10,align=center] (pop) {population\\NN weights};
+\node[draw,rounded corners,fill=blue!8,align=center,below=of pop] (eval) {evaluate in IMSBS\\on $\mathcal T$};
+\node[draw,rounded corners,fill=orange!10,align=center,below=of eval] (fit) {fitness\\avg. quality};
+\node[draw,rounded corners,fill=green!10,align=center,below left=0.7cm and 0.4cm of fit] (sel) {elite + crossover};
+\node[draw,rounded corners,fill=green!10,align=center,below right=0.7cm and 0.4cm of fit] (mut) {mutants};
+\draw[->,thick] (pop)--(eval); \draw[->,thick] (eval)--(fit);
+\draw[->,thick] (fit)--(sel); \draw[->,thick] (fit)--(mut);
+\draw[->,thick] (sel.west) -- ++(-0.7,0) |- (pop.west);
+\draw[->,thick] (mut.east) -- ++(0.7,0) |- (pop.east);
+\end{tikzpicture}}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Rank-based ensemble: learned + analytical guidance}
+\begin{itemize}
+  \item \textbf{Preliminary tests}: the learned heuristic strong, but not uniformly best
+  \item Hand-crafted upper bounds useful, especially in some small-$m$ cases \vspace{0.3cm}
+  \item %Raw scores not directly comparable,
+  Combine both into one: \textbf{rankings} rather than scores combined
+\end{itemize}
+\vspace{0.25cm}
+\begin{block}{Combined rank}
+\[
+ r(v)=\alpha\,r_{h_{w^*}}(v)+(1-\alpha)\,r_{UB_2}(v).
+\]
+%Lower rank $r(v)$ means higher priority in the beam.
+\end{block}
+\vspace{0.15cm}
+%\centering
+%\begin{tabular}{c|c|c|c|c}
+%$m$ & 2 & 3 & 5 & 10 \\\hline
+%$\alpha$ & 0.60 & 0.50 & 0.35 & 0.15
+%\end{tabular} \\ \vspace{0.3cm}
+$\Rightarrow \textrm{UB}_2$ replaced by $r(\cdot)$ into IMSBS:  \textcolor{red}{\textbf{Ensemble-IMSBS approach}}.
+\end{frame}
+
+\begin{frame}{What was tuned? Experimental design}
+\small
+\begin{columns}[T,totalwidth=\textwidth]
+\begin{column}{0.27\textwidth}
+%\begin{block}{IMSBS parameters}
+%\begin{itemize}
+%\item tuned by \texttt{irace}  ($\beta=5000$)
+%\end{itemize}
+%\end{block} \vspace{1.0cm}
+
+\begin{block}{Training protocol}
+\begin{itemize}
+%\item 32 training + 32 validation instances
+\item   IMSBS utilized $\beta=500$, max. 100 beam iterations or 60 sec
+\end{itemize}
+\end{block}
+\end{column}
+
+\begin{column}{0.70\textwidth}
+\begin{block}{NN design choices}
+\begin{itemize}
+\item 2 or 3 hidden layers
+\item 5 or 10 neurons per hidden layer
+\item activation: \texttt{tanh}, \texttt{ReLU}, \texttt{sigmoid}
+\item different feature combinations %: $F_1$, $F_2$, $F_3$
+\end{itemize}
+\end{block}
+\begin{block}{Selected architectures (split by diff. $m$), E.g.:}
+\begin{tabular}{c|l|l|l}
+$m$ & layers & act. & features \\\hline
+%2 & 10-5-5 & ReLU & $F_2$\\
+%2 & 10-5-5 & ReLU & $F_2$\\
+3 & 10-10-5 & ReLU & search \& gap features + $|\Sigma|$ \\
+5 & 10-5-5 & sigmoid & search \& gap features\\
+\vdots &             & 
+%10 & 10-5-5 & ReLU & $F_2$
+\end{tabular}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Numerical results: Random and Real benchmarks}
+ 
+\begin{block}{\textsc{Random} benchmark}
+\centering
+\scalebox{0.7}{
+\begin{tabular}{lccc}
+\toprule
+comparison [Ensembe vs. IMSBS] & wins & ties & losses\\
+\midrule
+all groups (32) & \textbf{20} & 8 & 4\\
+$m=2,3$ & \textbf{10} & 5 & 1\\
+$m=5,10$ & \textbf{10} & 3 & 3\\
+\bottomrule
+\end{tabular}} \\
+\vspace{0.15cm}
+\footnotesize Wilcoxon: $p=0.009$ on all groups ($n\in\{50, 100, 200, 500\}$).
+\end{block}
+
+
+\begin{block}{\textsc{Real} benchmark}
+\centering
+\scalebox{0.75}{
+\begin{tabular}{lccc}
+\toprule
+comparison & wins & ties & losses\\
+\midrule
+Ensemble-IMSBS vs. IMSBS (20) & \textbf{12} & 7 & 1\\
+\bottomrule
+\end{tabular}} \\
+\vspace{0.7cm}
+\footnotesize{Comparable runtime; larger gains on harder instances such as \textsc{Virus}}.
+\end{block}
+
+ 
+%\begin{block}{Takeaway}
+%\textcolor{red}{The learned ensemble improves solution quality consistently, while keeping the original IMSBS machinery almost unchanged.}
+%\end{block}
+\end{frame}
+
+
+\begin{frame}{Conclusion}
+
+
+		\begin{itemize}
+			\item 	We successfully learned an improved guidance  through a neuro-evolved process
+			\begin{itemize}
+				\item statistically significantly better results when compared to the literature-best approach
+			\end{itemize} \vspace{0.5cm}
+		    \item Noticed for $|\Sigma|=2$: a stronger exploration/\textcolor{red}{\textbf{richer feature portfolio}} needed
+		\end{itemize}
+
+\end{frame}
+
+
+
+% Final visible slide
+\begin{frame}
+	\begin{center}
+		\Large
+		Thank you for your attention!
+	\end{center}
+\end{frame}
+
+% -------------------------------------------------
+% BACKUP / Q&A SLIDE
+% -------------------------------------------------
+
+\begin{frame}{Ensemble-IMSBS vs. exact DP-1 solution ($m=2$)}
+	
+	\begin{columns}[T,onlytextwidth]
+		
+		\begin{column}{0.47\textwidth}
+			\centering
+			{$|\Sigma|=2$}
+			
+			\vspace{0.3cm}
+			\scalebox{0.7}{
+				\begin{tabular}{c|c}
+					$n$ & Avg. Gap \\
+					\hline
+					50  & 1.0\% \\
+					100 & 6.5\% \\
+					200 & 10.0\% \\
+					500 & \alert{\textbf{24.4\%}} \\
+					\hline\hline
+				\end{tabular}
+			}
+			
+			\vspace{0.2cm}
+			
+			\textbf{\footnotesize{
+					Performance degrades as\\
+					the instance size increases.}}
+		\end{column}
+		
+		\begin{column}{0.47\textwidth}
+			\centering
+			{$|\Sigma|=4$}
+			
+			\vspace{0.3cm}
+			\scalebox{0.7}{
+				\begin{tabular}{c|c}
+					$n$ & Avg. Gap \\
+					\hline
+					50  & 0.7\% \\
+					100 & 0.3\% \\
+					200 & 1.1\% \\
+					500 & \textbf{2.0\%} \\
+					\hline\hline
+				\end{tabular}
+			}
+			
+			\vspace{0.2cm}
+			
+			\textbf{\footnotesize{
+					Near-optimal performance\\
+					across all instance sizes.}}
+		\end{column}
+		
+	\end{columns}
+	
+	\vspace{0.55cm}
+	
+	\begin{center}
+		\footnotesize
+		\textbf{Ensemble-IMSBS stays within 2\% of DP-1\\
+			for all tested $|\Sigma|=4$ instances.}
+	\end{center}
+	
+\end{frame}
+ 
+\end{document}

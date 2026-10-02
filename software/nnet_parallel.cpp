@@ -300,17 +300,18 @@ vector<double> MLP::Train(){
         for(int i = n_elites; i < population_size; i++)
             apply_decoder(new_population[i]);
 
-        // -------- Selection with validation control --------
+        // -------- Selection with validation control ---------
+        
         for(int i = 0; i < population_size; i++)
         {
-            if(new_population[i].ofv > best_ofv)
+            if(new_population[i].ofv > best_ofv) // new best
             {
                 double candidate_train = new_population[i].ofv;
                 const vector<double>& candidate_weights = new_population[i].weights;
 
                 double candidate_validation = calculate_validation_value(candidate_weights);
 
-                if(candidate_validation >= best_validation_value - epsilon) //validation control: only accept new weights if validation value is not worse than the best validation value found so far (with a small tolerance epsilon)
+                if(candidate_validation >= best_validation_value - epsilon) //  validation control: only accept new weights if validation value is not worse than the best validation value found so far (with a small tolerance epsilon)
                 {
                     best_ofv = candidate_train;
                     best_validation_value = candidate_validation;
@@ -333,13 +334,13 @@ vector<double> MLP::Train(){
 
                     print_information(best_ofv, ctime, niter, best_validation_value);
                 }
-                else{ // te overfitting occured, STOP the training 
+                else{ // overfitting occured, STOP the training 
                     
                     stop = true;
                 
                 }
             }
-        }  
+        }
 
         population = new_population;
 

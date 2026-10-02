@@ -18,6 +18,11 @@ project-root/
 ├── software/       # Implementation of algorithms, heuristics, and models
 ├── docs/           # Documentation, figures, and paper-related materials
 ├── instances/      # Benchmark instances used in experiments
+│
+├── scripts/        # Utility and execution scripts
+├── notebooks/      # Exploratory analysis and visualization
+├── models/         # Trained models and checkpoints
+├── data/           # Optional data preprocessing and storage
 └── README.md
 ```
 
@@ -27,9 +32,10 @@ project-root/
 
 This project investigates **neuro-evolved heuristics** for solving the Variable Gapped Common Subsequence (VGCS) / related combinatorial optimization problems. The main focus is on:
 
-* Evolutionary and metaheuristic optimization (GA strategies)
+* Evolutionary and metaheuristic optimization (GA, VNS-like strategies)
 * Neural-guided decision-making for heuristic improvement
 * Beam / search-based constructive methods
+* Hybrid ILP / heuristic / learning-based approaches
 * Benchmark evaluation on structured instance sets
 
 ---
@@ -49,7 +55,7 @@ Implements all core algorithms including:
 
 ### Instances
 
-Contains benchmark datasets for VGLCS-related problems, used for evaluation and comparison of algorithms.
+Contains benchmark datasets for VGCS-related problems, used for evaluation and comparison of algorithms.
 
 ### Results
 
@@ -74,7 +80,8 @@ Includes:
 
 1. Load instance from `instances/`
 2. Run baseline heuristics from `software/`
-3. Collect and store outputs in `results/`
+3. Apply neuro-evolved heuristic strategies from `Eugen/`
+4. Collect and store outputs in `results/`
 
 ---
 
